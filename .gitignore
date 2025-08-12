@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment files
+.env
+.env.*
+.envrc
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Test & tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs
+*.log
+
+# Local databases/state
+nss_dev.db
+*.db
+
+# Keys and secrets (keep dir, ignore files)
+backend/app/auth/keys/*
+!backend/app/auth/keys/.gitkeep
+*.pem
+*.key
+
+# OPA
+.opa/
+
+# Node/web (future)
+node_modules/
+*.tsbuildinfo
+
+# Redis/Rabbit artifacts
+dump.rdb
+
+
