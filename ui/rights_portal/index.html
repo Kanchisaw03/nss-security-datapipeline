@@ -20,15 +20,80 @@
       <label>Data Principal ID:</label>
       <input id="dpid" value="user-123" />
     </div>
+    <div>
+      <label>Purpose:</label>
+      <input id="purpose" value="research" />
+    </div>
+    <div>
+      <label>Email:</label>
+      <input id="email" value="a@example.com" />
+    </div>
+    <div>
+      <label>Date of Birth (YYYY-MM-DD):</label>
+      <input id="dob" value="1990-01-01" />
+    </div>
     <button onclick="access()">Right to Access (demo)</button>
+    <button onclick="createConsent()">Create Consent</button>
+    <button onclick="ingest()">Ingest Data</button>
     <pre id="out"></pre>
     <script>
+      const API_BASE = 'http://localhost:8000';
+
       async function access() {
         const token = document.getElementById('token').value;
         const dpid = document.getElementById('dpid').value;
-        const resp = await fetch('/api/health/ready');
-        const text = await resp.text();
-        document.getElementById('out').textContent = text;
+        try {
+          const resp = await fetch(`${API_BASE}/api/health/ready`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          });
+          const text = await resp.text();
+          document.getElementById('out').textContent = text;
+        } catch (e) {
+          document.getElementById('out').textContent = String(e);
+        }
+      }
+
+      function authHeaders() {
+        const token = document.getElementById('token').value;
+        return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+      }
+
+      async function createConsent() {
+        const dpid = document.getElementById('dpid').value;
+        const purpose = document.getElementById('purpose').value;
+        const body = {
+          data_principal_id: dpid,
+          purpose,
+          scope: ["email"],
+          expires_at: null
+        };
+        try {
+          const resp = await fetch(`${API_BASE}/api/consents`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+          const text = await resp.text();
+          document.getElementById('out').textContent = `Status: ${resp.status}\n` + text;
+        } catch (e) {
+          document.getElementById('out').textContent = String(e);
+        }
+      }
+
+      async function ingest() {
+        const dpid = document.getElementById('dpid').value;
+        const purpose = document.getElementById('purpose').value;
+        const email = document.getElementById('email').value;
+        const dob = document.getElementById('dob').value;
+        const body = {
+          data_principal_id: dpid,
+          purpose,
+          date_of_birth: dob,
+          payload: { email }
+        };
+        try {
+          const resp = await fetch(`${API_BASE}/api/ingest`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+          const text = await resp.text();
+          document.getElementById('out').textContent = `Status: ${resp.status}\n` + text;
+        } catch (e) {
+          document.getElementById('out').textContent = String(e);
+        }
       }
     </script>
   </body>

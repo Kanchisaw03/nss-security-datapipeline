@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import Counter, Histogram, generate_latest
 from starlette.requests import Request
@@ -74,8 +74,8 @@ async def metrics() -> PlainTextResponse:
 
 # Routers
 app.include_router(health.router, prefix="/api")
-app.include_router(consent.router, prefix="/api", dependencies=[auth_dependency])
-app.include_router(ingest.router, prefix="/api", dependencies=[auth_dependency])
-app.include_router(audit.router, prefix="/api", dependencies=[auth_dependency])
+app.include_router(consent.router, prefix="/api", dependencies=[Depends(auth_dependency)])
+app.include_router(ingest.router, prefix="/api", dependencies=[Depends(auth_dependency)])
+app.include_router(audit.router, prefix="/api", dependencies=[Depends(auth_dependency)])
 
 

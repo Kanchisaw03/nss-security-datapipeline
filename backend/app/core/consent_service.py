@@ -3,13 +3,13 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from typing import Optional
+from typing import Optional, List
 
 import redis.asyncio as aioredis
 
 from ..db.session import get_session
 from ..models.orm import Consent
-from ..models.schemas import ConsentCreate, ConsentRead
+from ..models.schemas import ConsentCreate, ConsentRead, ConsentUpdate
 from .merkle_audit import AuditLog
 
 
@@ -82,6 +82,7 @@ class ConsentService:
                 actor_id="system",
                 scope=payload.purpose,
                 payload={"consent_id": consent.id},
+                session=session,
             )
             await self.cache.set(
                 self._cache_key(payload.data_principal_id, payload.purpose),
@@ -110,6 +111,58 @@ class ConsentService:
                 active=db_obj.active,
             )
 
+    async def list_consents(self, *, data_principal_id: Optional[str], purpose: Optional[str]) -> List[ConsentRead]:
+        async with get_session() as session:
+            from sqlalchemy import select
+
+            stmt = select(Consent)
+            if data_principal_id:
+                stmt = stmt.where(Consent.data_principal_id == data_principal_id)
+            if purpose:
+                stmt = stmt.where(Consent.purpose == purpose)
+            result = await session.execute(stmt)
+            consents = result.scalars().all()
+            return [
+                ConsentRead(
+                    id=c.id,
+                    data_principal_id=c.data_principal_id,
+                    purpose=c.purpose,
+                    scope=json.loads(c.scope),
+                    expires_at=c.expires_at,
+                    active=c.active,
+                )
+                for c in consents
+            ]
+
+    async def update_consent(self, consent_id: int, payload: ConsentUpdate) -> Optional[ConsentRead]:
+        async with get_session() as session:
+            db_obj = await session.get(Consent, consent_id)
+            if not db_obj:
+                return None
+            if payload.purpose is not None:
+                db_obj.purpose = payload.purpose
+            if payload.scope is not None:
+                db_obj.scope = json.dumps(payload.scope)
+            if payload.expires_at is not None:
+                db_obj.expires_at = payload.expires_at
+            if payload.active is not None:
+                db_obj.active = payload.active
+            await session.flush()
+            await self.audit.append_event(
+                action="consent_update",
+                actor_id="system",
+                scope=db_obj.purpose,
+                payload={"consent_id": db_obj.id},
+                session=session,
+            )
+            return ConsentRead(
+                id=db_obj.id,
+                data_principal_id=db_obj.data_principal_id,
+                purpose=db_obj.purpose,
+                scope=json.loads(db_obj.scope),
+                expires_at=db_obj.expires_at,
+                active=db_obj.active,
+            )
     async def withdraw_consent(self, consent_id: int) -> bool:
         async with get_session() as session:
             db_obj = await session.get(Consent, consent_id)
@@ -122,6 +175,7 @@ class ConsentService:
                 actor_id="system",
                 scope=db_obj.purpose,
                 payload={"consent_id": db_obj.id},
+                session=session,
             )
             await self.cache.delete(self._cache_key(db_obj.data_principal_id, db_obj.purpose))
             return True

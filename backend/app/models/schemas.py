@@ -31,3 +31,10 @@ class IngestResponse(BaseModel):
     record_id: Optional[int] = None
 
 
+class ConsentUpdate(BaseModel):
+    purpose: Optional[str] = None
+    scope: Optional[List[str]] = None
+    expires_at: Optional[datetime] = None
+    active: Optional[bool] = None
+
+

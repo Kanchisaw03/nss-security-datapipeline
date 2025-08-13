@@ -5,6 +5,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 from ..db.session import get_session
+from sqlalchemy.ext.asyncio import AsyncSession
 from ..models.orm import AuditEvent
 
 
@@ -60,7 +61,15 @@ class AuditLog:
     def __init__(self) -> None:
         self.tree = MerkleTree()
 
-    async def append_event(self, *, action: str, actor_id: str, scope: str, payload: Dict[str, Any]) -> int:
+    async def append_event(
+        self,
+        *,
+        action: str,
+        actor_id: str,
+        scope: str,
+        payload: Dict[str, Any],
+        session: Optional[AsyncSession] = None,
+    ) -> int:
         event_payload = {
             "action": action,
             "actor_id": actor_id,
@@ -69,11 +78,29 @@ class AuditLog:
         }
         index = self.tree.append(event_payload)
         root = self.tree.root()
-        async with get_session() as session:
-            event = AuditEvent(action=action, actor_id=actor_id, scope=scope, payload=json.dumps(payload), merkle_root=root)
+        if session is not None:
+            event = AuditEvent(
+                action=action,
+                actor_id=actor_id,
+                scope=scope,
+                payload=json.dumps(payload),
+                merkle_root=root,
+            )
             session.add(event)
             await session.flush()
             await session.refresh(event)
+            return event.id
+        async with get_session() as owned_session:
+            event = AuditEvent(
+                action=action,
+                actor_id=actor_id,
+                scope=scope,
+                payload=json.dumps(payload),
+                merkle_root=root,
+            )
+            owned_session.add(event)
+            await owned_session.flush()
+            await owned_session.refresh(event)
             return event.id
 
     async def get_inclusion_proof(self, event_id: int) -> Optional[Dict[str, Any]]:

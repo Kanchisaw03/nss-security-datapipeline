@@ -10,7 +10,7 @@ def _db_url() -> str:
     url = os.getenv("DATABASE_URL")
     if url:
         return url
-    if os.getenv("ALLOW_SQLITE_FALLBACK", "false").lower() == "true":
+    if os.getenv("ALLOW_SQLITE_FALLBACK", "true").lower() == "true":
         return "sqlite+aiosqlite:///./nss_dev.db"
     # Default to postgres local
     return "postgresql+asyncpg://postgres:postgres@localhost:5432/nss"

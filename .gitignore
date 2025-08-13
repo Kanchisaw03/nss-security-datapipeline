@@ -17,12 +17,14 @@ venv/
 .env
 .env.*
 .envrc
+!.env.example
 
 # IDE/editor
 .vscode/
 .idea/
 *.swp
 .DS_Store
+Thumbs.db
 
 # Test & tooling caches
 .pytest_cache/
@@ -35,25 +37,35 @@ htmlcov/
 
 # Logs
 *.log
+logs/
 
 # Local databases/state
 nss_dev.db
 *.db
+*.sqlite3
 
 # Keys and secrets (keep dir, ignore files)
 backend/app/auth/keys/*
 !backend/app/auth/keys/.gitkeep
 *.pem
 *.key
+*.crt
 
 # OPA
 .opa/
 
-# Node/web (future)
+# Node/web
 node_modules/
 *.tsbuildinfo
+.eslintcache
 
-# Redis/Rabbit artifacts
-dump.rdb
+# Frontend build outputs
+ui/cyber-platform/dist/
+ui/cyber-platform/.vite/
+ui/cyber-platform/build/
 
-
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
