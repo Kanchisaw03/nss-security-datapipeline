@@ -1,6 +1,6 @@
 """API routers package."""
 
-from . import consent, ingest, audit, health  # re-export for main router include
+from . import consent as consent, ingest as ingest, audit as audit, health as health  # re-export for main router include
 
 
 

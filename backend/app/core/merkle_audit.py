@@ -76,7 +76,7 @@ class AuditLog:
             "scope": scope,
             "payload": payload,
         }
-        index = self.tree.append(event_payload)
+        self.tree.append(event_payload)
         root = self.tree.root()
         if session is not None:
             event = AuditEvent(

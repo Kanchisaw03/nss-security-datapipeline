@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 
 from backend.app.core.merkle_audit import MerkleTree
 

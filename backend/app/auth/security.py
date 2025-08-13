@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import base64
 import os
 import time
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Optional
 
 import jwt
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 JWT_PRIVATE_KEY_PATH = os.getenv("JWT_PRIVATE_KEY_PATH", "backend/app/auth/keys/dev_rsa_private.pem")
